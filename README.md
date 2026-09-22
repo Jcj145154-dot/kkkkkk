@@ -1,1 +1,201 @@
-# kkkkkk
+# kkkkkk<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幽暗房间</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft Yahei",sans-serif}
+        body{
+            background:#050505;
+            overflow:hidden;
+            color:#eee;
+        }
+        #game{
+            width:100vw;
+            height:100vh;
+            position:relative;
+        }
+        #room{
+            width:800px;height:600px;
+            background:#0a0a0c;
+            border:3px solid #222;
+            position:absolute;
+            left:50%;top:50%;
+            transform:translate(-50%,-50%);
+            box-shadow:0 0 80px #000,inset 0 0 120px #000;
+        }
+        .wall{
+            background:#111;
+            position:absolute;
+        }
+        #door{
+            width:80px;height:140px;
+            right:20px;top:230px;
+            background:#180808;
+            border:2px solid #441111;
+            display:flex;
+            align-items:center;justify-content:center;
+            color:#773333;
+            font-size:12px;
+        }
+        #player{
+            width:32px;height:32px;
+            background:#dddddd;
+            border-radius:50%;
+            position:absolute;
+            box-shadow:0 0 16px #fff;
+        }
+        .candle{
+            width:16px;height:28px;
+            background:#ffdd88;
+            position:absolute;
+            border-radius:4px 4px 0 0;
+            box-shadow:0 0 22px #ffaa22;
+        }
+        .shadow{
+            width:44px;height:44px;
+            background:#000;
+            border-radius:50%;
+            position:absolute;
+            box-shadow:0 0 24px #000;
+        }
+        #tip{
+            position:absolute;
+            top:12px;left:50%;
+            transform:translateX(-50%);
+            font-size:16px;
+            color:#bbbbbb;
+        }
+        #over,#win{
+            width:100%;height:100%;
+            background:rgba(0,0,0,0.92);
+            position:absolute;
+            top:0;left:0;
+            display:none;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            z-index:99;
+        }
+        .btn{
+            margin-top:24px;
+            padding:10px 22px;
+            background:#222;
+            color:#ddd;
+            border:1px solid #555;
+            cursor:pointer;
+        }
+        .btn:hover{background:#333}
+    </style>
+</head>
+<body>
+<div id="game">
+    <div id="tip">收集全部蜡烛，从门离开。方向键移动</div>
+    <div id="room">
+        <div id="door">出口</div>
+        <div id="player"></div>
+    </div>
+    <div id="over">
+        <h2 style="color:#aa2222">黑影抓住了你</h2>
+        <p>黑暗吞噬一切</p>
+        <button class="btn" onclick="restart()">重新开始</button>
+    </div>
+    <div id="win">
+        <h2 style="color:#ddddbb">你逃出去了</h2>
+        <p>短暂逃离这间幽暗房间</p>
+        <button class="btn" onclick="restart()">再来一局</button>
+    </div>
+</div>
+
+<script>
+const room = document.getElementById('room');
+const player = document.getElementById('player');
+const door = document.getElementById('door');
+const overBox = document.getElementById('over');
+const winBox = document.getElementById('win');
+
+let px=80,py=80;
+const speed=4;
+let candleList=[];
+let shadowList=[];
+let candleTotal=5;
+let candleGot=0;
+let gameRun=true;
+const keys={up:false,down:false,left:false,right:false};
+
+function spawnCandles(){
+    for(let i=0;i<candleTotal;i++){
+        let div=document.createElement('div');
+        div.className='candle';
+        let cx=100+Math.random()*580;
+        let cy=100+Math.random()*400;
+        div.style.left=cx+'px';
+        div.style.top=cy+'px';
+        room.appendChild(div);
+        candleList.push({dom:div,x:cx,y:cy});
+    }
+}
+
+function spawnShadows(){
+    for(let i=0;i<3;i++){
+        let div=document.createElement('div');
+        div.className='shadow';
+        let sx=200+Math.random()*450;
+        let sy=100+Math.random()*400;
+        div.style.left=sx+'px';
+        div.style.top=sy+'px';
+        room.appendChild(div);
+        shadowList.push({
+            dom:div,x:sx,y:sy,
+            dx:(Math.random()-0.5)*1.6,
+            dy:(Math.random()-0.5)*1.6
+        });
+    }
+}
+
+function restart(){
+    overBox.style.display='none';
+    winBox.style.display='none';
+    candleGot=0;
+    gameRun=true;
+    candleList.forEach(c=>c.dom.remove());
+    shadowList.forEach(s=>s.dom.remove());
+    candleList=[];shadowList=[];
+    px=80;py=80;
+    player.style.left=px+'px';
+    player.style.top=py+'px';
+    spawnCandles();
+    spawnShadows();
+}
+
+function isCollide(a,b,ar=16,br=22){
+    let dx=a.x-b.x;
+    let dy=a.y-b.y;
+    return Math.sqrt(dx*dx+dy*dy)<ar+br;
+}
+
+document.addEventListener('keydown',e=>{
+    if(!gameRun)return;
+    switch(e.key){
+        case 'ArrowUp':keys.up=true;break;
+        case 'ArrowDown':keys.down=true;break;
+        case 'ArrowLeft':keys.left=true;break;
+        case 'ArrowRight':keys.right=true;break;
+    }
+})
+document.addEventListener('keyup',e=>{
+    switch(e.key){
+        case 'ArrowUp':keys.up=false;break;
+        case 'ArrowDown':keys.down=false;break;
+        case 'ArrowLeft':keys.left=false;break;
+        case 'ArrowRight':keys.right=false;break;
+    }
+})
+
+function loop(){
+    if(!gameRun){
+        requestAnimationFrame(loop);
+        return;
+    }
+   
